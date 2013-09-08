@@ -1,0 +1,82 @@
+#!/usr/bin/env python
+'''
+Created on 03/08/2013
+
+@author: djwhyte
+'''
+
+import logging.handlers
+import monitor.eventmonitor
+import monitor.simplelogger
+import monitor.zabbixwriter
+import os
+import sys
+import time
+
+
+
+
+class MainApp():
+    
+    def __init__(self):
+        self.__in_development = True
+        self.__logger = self.__setup_logger()
+        
+        self.__logger.info("Logger configured.")
+        self.__sem = monitor.eventmonitor.SystemEventMonitor()
+        self.__simpleLogger = monitor.simplelogger.SimpleLogger()
+        self.__zabbixwriter = monitor.zabbixwriter.ZabbixWriter()
+
+        self.__sem.connect(self.__sem.SYSTEM_EVENT, 
+                           self.__simpleLogger.handle_event)
+        self.__sem.connect(self.__sem.SYSTEM_EVENT, 
+                           self.__zabbixwriter.handle_system_event)
+        
+    def run(self):
+        self.__logger.info("MainApp is running")
+        while 1:
+            # do your stuff...
+            time.sleep(0.1)
+    
+    def __setup_logger(self):
+        log_filename = 'mythtv-monitor.log'
+        
+        logger = logging.getLogger('monitor')
+        logger.setLevel(logging.DEBUG)
+
+        # Determine the path to the log file.
+        log_path = os.path.join(os.sep, 'var', 'log', 'mythtv-monitor')
+        if self.__in_development:
+            # We are working in a development environment
+            log_path = os.path.join(os.sep, 'tmp', 'mythtv-monitor')
+            
+        if not os.path.exists(log_path):
+            os.makedirs(log_path)
+        
+        logger_path = os.path.join(log_path, log_filename)
+        
+        # Add the log message handler to the logger (10MBs in size).
+        file_handler = logging.handlers.RotatingFileHandler(
+                       logger_path, maxBytes=10485760, backupCount=7)
+        file_handler.setLevel(logging.DEBUG)
+        
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
+        
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+        
+        return logger
+
+
+if __name__ == '__main__':
+    try:
+        app = MainApp()
+        app.run()
+    except KeyboardInterrupt:
+        print >> sys.stderr, '\nExiting by user request.\n'
+        sys.exit(0)
