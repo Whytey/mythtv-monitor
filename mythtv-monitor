@@ -6,9 +6,9 @@ Created on 03/08/2013
 '''
 
 import logging.handlers
-import monitor.eventmonitor
-import monitor.simplelogger
-import monitor.zabbixwriter
+import mythtvmonitor.eventmonitor
+import mythtvmonitor.simplelogger
+import mythtvmonitor.zabbixwriter
 import os
 import sys
 import time
@@ -23,9 +23,9 @@ class MainApp():
         self.__logger = self.__setup_logger()
         
         self.__logger.info("Logger configured.")
-        self.__sem = monitor.eventmonitor.SystemEventMonitor()
-        self.__simpleLogger = monitor.simplelogger.SimpleLogger()
-        self.__zabbixwriter = monitor.zabbixwriter.ZabbixWriter()
+        self.__sem = mythtvmonitor.eventmonitor.SystemEventMonitor()
+        self.__simpleLogger = mythtvmonitor.simplelogger.SimpleLogger()
+        self.__zabbixwriter = mythtvmonitor.zabbixwriter.ZabbixWriter()
 
         self.__sem.connect(self.__sem.SYSTEM_EVENT, 
                            self.__simpleLogger.handle_event)
@@ -41,12 +41,13 @@ class MainApp():
     def __setup_logger(self):
         log_filename = 'mythtv-monitor.log'
         
-        logger = logging.getLogger('monitor')
+        logger = logging.getLogger('mythtvmonitor')
         logger.setLevel(logging.DEBUG)
 
         # Determine the path to the log file.
         log_path = os.path.join(os.sep, 'var', 'log', 'mythtv-monitor')
-        if self.__in_development:
+        # Determine the logger location
+        if os.path.exists(os.path.join(os.getcwd(), 'setup.py')):
             # We are working in a development environment
             log_path = os.path.join(os.sep, 'tmp', 'mythtv-monitor')
             

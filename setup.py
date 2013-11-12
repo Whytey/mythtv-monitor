@@ -11,7 +11,7 @@ data = dict(
     description = 'mythtv-monitor is used to monitor and handle System Events from MythTV',
     author = 'David Whyte',
     author_email = 'david@thewhytehouse.org',
-    packages =      ['monitor'],
+    packages =      ['mythtvmonitor'],
     scripts = ['mythtv-monitor'],
     data_files = [('/etc/init', ['mythtv-monitor.conf'])],
     )
